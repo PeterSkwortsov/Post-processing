@@ -5,7 +5,8 @@ import {
     EffectComposer,
     Glitch,
    Noise,
-   Bloom
+   Bloom,
+DepthOfField
 } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { useControls } from "leva";
@@ -16,7 +17,7 @@ export default function Experience() {
 
     return (
       <>
-        {/* <color args={["#000000ff"]} attach="background" /> */}
+        <color args={["#070606ff"]} attach="background" />
 
        {/* <EffectComposer multisampling={8}>
        
@@ -50,9 +51,14 @@ export default function Experience() {
          />
         </EffectComposer> */}
         <EffectComposer>
-            <Bloom mipmapBlur
+            {/* <Bloom mipmapBlur
             intensity={0.4}
-            />
+            /> */}
+            <DepthOfField 
+            focusDistance={0.025} 
+             focalLength={0.025} 
+             bokehScale={6}
+             />
         </EffectComposer>
 
         <Perf position="top-left" />
@@ -70,10 +76,13 @@ export default function Experience() {
         <mesh castShadow position-x={2} scale={1.5}>
           <boxGeometry />
           <meshStandardMaterial 
-          color='white' 
-          emissive='orange'
-          emissiveIntensity={1}
-          toneMapped={true} />
+          color="mediumpurple" />
+        </mesh>
+
+        <mesh castShadow position-z={4} scale={0.6}>
+          <boxGeometry />
+          <meshStandardMaterial 
+          color="red" />
         </mesh>
 
         <mesh
