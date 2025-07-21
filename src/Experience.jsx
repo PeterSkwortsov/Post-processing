@@ -11,26 +11,33 @@ DepthOfField
 import { BlendFunction } from "postprocessing";
 import { useControls } from "leva";
 import { GlitchMode } from "postprocessing";
+import Drunk from "./Drunkes";
+import { useRef } from "react";
 
 export default function Experience() {
    
+    const drunkRef = useRef();
+
+    const drunkProps = useControls("Drunk", {
+        frequency: { value: 20, min: 0, max: 50 },
+        amplitude: { value: 5, min: 0, max: 10 },
+    });
 
     return (
       <>
         <color args={["#070606ff"]} attach="background" />
 
-       {/* <EffectComposer multisampling={8}>
+        {/* <EffectComposer multisampling={8}>
        
           это  multisampling четкость, 8 оптимально  */}
-          {/* <Vignette
+        {/* <Vignette
             offset={0.5} // vignette offset
             darkness={0.5} // vignette darkness
             eskil={false} // Eskil's vignette technique
             blendFunction={BlendFunction.}
           />*/}
-          {/* это эффект затенения по краям 
+        {/* это эффект затенения по краям 
         </EffectComposer>*/}
-
 
         {/* <EffectComposer multisampling={8}>
         <Glitch
@@ -49,16 +56,17 @@ export default function Experience() {
          <Noise 
          blendFunction={BlendFunction.AVERAGE}
          />
-        </EffectComposer> */}
+        </EffectComposer> 
+         */}
+
+
+         
         <EffectComposer>
-            {/* <Bloom mipmapBlur
-            intensity={0.4}
-            /> */}
-            <DepthOfField 
-            focusDistance={0.025} 
-             focalLength={0.025} 
-             bokehScale={6}
-             />
+          <Drunk 
+          ref={drunkRef}
+            {...drunkProps}
+            blendFunction={BlendFunction.DARKEN}
+          />
         </EffectComposer>
 
         <Perf position="top-left" />
@@ -75,21 +83,19 @@ export default function Experience() {
 
         <mesh castShadow position-x={2} scale={1.5}>
           <boxGeometry />
-          <meshStandardMaterial 
-          color="mediumpurple" />
+          <meshStandardMaterial color="mediumpurple" />
         </mesh>
 
         <mesh castShadow position-z={4} scale={0.6}>
           <boxGeometry />
-          <meshStandardMaterial 
-          color="red" />
+          <meshStandardMaterial color="red" />
         </mesh>
 
         <mesh
           receiveShadow
           position-y={-1}
           rotation-x={-Math.PI * 0.5}
-          scale={10}
+          scale={20}
         >
           <planeGeometry />
           <meshStandardMaterial color="greenyellow" />
