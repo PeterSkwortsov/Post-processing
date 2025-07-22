@@ -1,105 +1,69 @@
 import { OrbitControls } from "@react-three/drei";
-import { Perf } from "r3f-perf";
-import {
-    Vignette,
-    EffectComposer,
-    Glitch,
-   Noise,
-   Bloom,
-DepthOfField
-} from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
-import { useControls } from "leva";
-import { GlitchMode } from "postprocessing";
-import Drunk from "./Drunkes";
-import { useRef } from "react";
+import { useGLTF, Environment, Float, PresentationControls, ContactShadows, Html, Text } from "@react-three/drei";
 
 export default function Experience() {
-   
-    const drunkRef = useRef();
-
-    const drunkProps = useControls("Drunk", {
-        frequency: { value: 20, min: 0, max: 50 },
-        amplitude: { value: 5, min: 0, max: 10 },
-    });
+     
+    const computer = useGLTF(
+      "https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/macbook/model.gltf"
+    );
 
     return (
       <>
-        <color args={["#070606ff"]} attach="background" />
-
-        {/* <EffectComposer multisampling={8}>
-       
-          это  multisampling четкость, 8 оптимально  */}
-        {/* <Vignette
-            offset={0.5} // vignette offset
-            darkness={0.5} // vignette darkness
-            eskil={false} // Eskil's vignette technique
-            blendFunction={BlendFunction.}
-          />*/}
-        {/* это эффект затенения по краям 
-        </EffectComposer>*/}
-
-        {/* <EffectComposer multisampling={8}>
-        <Glitch
-            delay={[0.5, 1]}
-            duration={[0.1, 0.3]}
-            strength={[0.2, 0.4]}
-          />
-        </EffectComposer> */}
-        {/* <EffectComposer multisampling={8}>
-        <Glitch
-            delay={[0.5, 1]}
-            duration={[0.1, 0.3]}
-            strength={[0.2, 0.4]}
-            mode={GlitchMode.RECOVER}
-          />
-         <Noise 
-         blendFunction={BlendFunction.AVERAGE}
-         />
-        </EffectComposer> 
-         */}
-
-
-         
-        <EffectComposer>
-          <Drunk 
-          ref={drunkRef}
-            {...drunkProps}
-            blendFunction={BlendFunction.DARKEN}
-          />
-        </EffectComposer>
-
-        <Perf position="top-left" />
-
+        <color attach="background" args={["#312b2b"]} />
         <OrbitControls makeDefault />
 
-        <directionalLight castShadow position={[1, 2, 3]} intensity={4.5} />
-        <ambientLight intensity={1.5} />
-
-        <mesh castShadow position-x={-2}>
-          <sphereGeometry />
-          <meshStandardMaterial color="orange" />
-        </mesh>
-
-        <mesh castShadow position-x={2} scale={1.5}>
-          <boxGeometry />
-          <meshStandardMaterial color="mediumpurple" />
-        </mesh>
-
-        <mesh castShadow position-z={4} scale={0.6}>
-          <boxGeometry />
-          <meshStandardMaterial color="red" />
-        </mesh>
-
-        <mesh
-          receiveShadow
-          position-y={-1}
-          rotation-x={-Math.PI * 0.5}
-          scale={20}
+        <PresentationControls
+          global={false}
+          rotation={[0.15, 0.2, 0]}
+          polar={[-0.4, 0.2]}
+          azimuth={[-1, 0.75]}
+          // config={{ mass: 2, tension: 400 }}
+          // snap={{ mass: 4, tension: 400 }}
         >
-          <planeGeometry />
-          <meshStandardMaterial color="greenyellow" />
-        </mesh>
+          <Float rotationIntensity={0.4}>
+            <rectAreaLight
+              width={2.5}
+              height={1.65}
+              intensity={65}
+              color="#eca777"
+              rotation={[-0.1, Math.PI, 0]}
+              position={[0, 0.55, -1.15]}
+            />
+
+            <primitive
+              object={computer.scene}
+              scale={1.6}
+              position-y={-1.6}
+              position-z={1}
+              position-x={-0.2}
+            >
+              <Html
+                transform
+                wrapperClass="htmlScreen"
+                distanceFactor={1.17}
+                position={[0, 1.56, -1.4]}
+                rotation-x={-0.256}
+              >
+                <iframe occlude src="https://borsch-art.ru/"></iframe>
+              </Html>
+              <Text
+              font="./Forum.woff"
+              fontWeight={100}
+                position={[2, 1.75, 0]}
+                fontSize={0.25}
+                rotation-y={-1.15}
+                maxWidth={1.5}
+                textAlign="center"
+              >
+                Тут может быть ваш сайт
+              </Text>
+            </primitive>
+          </Float>
+        </PresentationControls>
+        <ContactShadows position-y={-2.0} blur={2} />
+
+        {/* <ambientLight intensity={1.5} /> */}
+        <directionalLight position={[3, 2, 1]} intensity={10.5} />
       </>
     );
 }
