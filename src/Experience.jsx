@@ -1,11 +1,14 @@
 import { OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
-import { Debug, Physics, RigidBody } from "@react-three/rapier";
-
+import { BallCollider, CuboidCollider, Debug, Physics, RigidBody } from "@react-three/rapier";
+import { useRef } from "react";
 export default function Experience() {
      
-
-
+  const cube = useRef();
+  const cubeJump = () => {
+    cube.current.applyImpulse({ x: -0.5, y: 4.6, z: Math.random() - 0.5 });
+    cube.current.applyTorqueImpulse({ x: 0, y: 1.5, z: 0.1 });
+  };
     return (
       <>
         <Perf position="top-left" />
@@ -25,27 +28,37 @@ export default function Experience() {
               <meshStandardMaterial color="orange" />
             </mesh>
           </RigidBody>
-          <RigidBody>
-            <mesh castShadow position={[2, 0, 3]}>
+          <RigidBody
+            ref={cube}
+            position={[0, 5, 0]}
+            // gravityScale={0.08}
+            // friction={0.2}
+          >
+            <mesh castShadow onClick={cubeJump}>
               <boxGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color="multicolored" />
+              <meshStandardMaterial color="red" />
             </mesh>
           </RigidBody>
-          <RigidBody colliders="ball">
-            <mesh position={[0, 2, 0]} castShadow>
+          <RigidBody colliders={false}>
+            <BallCollider args={[1.5]} mass={1}
+            
+            />
+            <mesh position={[0, 4, 0]} castShadow>
               <sphereGeometry args={[0.8, 32, 32]} />
               <meshStandardMaterial color="hotpink" />
+              <BallCollider mass={1} args={[0.8, 0.8, 0.8]} />
             </mesh>
           </RigidBody>
 
-          <RigidBody type="fixed">
-            <mesh position={[0, -2, 0]} receiveShadow>
-              <boxGeometry args={[10, 0.5, 10]} />
+          <RigidBody type="fixed" restitution={0.1}>
+            <mesh position={[0, 0, 0]} receiveShadow>
+              <boxGeometry args={[20, 0.5, 20]} />
               <meshStandardMaterial color="green" />
             </mesh>
           </RigidBody>
 
           <RigidBody colliders="trimesh">
+            {/* <CuboidCollider args={[1, 1, 1]} /> */}
             <mesh
               castShadow
               position={[0, 2, 0]}
