@@ -3,7 +3,7 @@ import { RigidBody } from '@react-three/rapier'
 import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-
+import { useMemo } from 'react'
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
 const floor1Material = new THREE.MeshStandardMaterial({ color: 'limegreen', roughness: 0.5, metalness: 0.5 })
@@ -12,7 +12,7 @@ const obstacle = new THREE.MeshStandardMaterial({ color: 'orangered', roughness:
 const waltMaterial = new THREE.MeshStandardMaterial({ color: 'slategray' })
 
 
-function BlockSpinner({ position = [0, 0, 0] }) 
+export function BlockSpinner({ position = [0, 0, 0] })
 {
     const [speed ] = useState(() => (Math.random() + 0.6) * (Math.random() < 0.5 ? -1 : 1))
     useFrame((state) => {
@@ -48,7 +48,7 @@ function BlockSpinner({ position = [0, 0, 0] })
 }
 
 
-function BlockStart({position = [0, 0, 0]}) {
+export function BlockStart({position = [0, 0, 0]}) {
     
     
 
@@ -64,7 +64,7 @@ function BlockStart({position = [0, 0, 0]}) {
 }
 
 
-function BlockLimbo({ position = [0, 0, 0] }) {
+export function BlockLimbo({ position = [0, 0, 0] }) {
     const [timeOffset] = useState(() => (Math.random() * Math.PI * 2))
     useFrame((state) => {
         const time = state.clock.getElapsedTime()
@@ -92,7 +92,7 @@ function BlockLimbo({ position = [0, 0, 0] }) {
     </group>
 }
 
-function BlockAxe({ position = [0, 0, 0] }) {
+export function BlockAxe({ position = [0, 0, 0] }) {
     const [timeOffset] = useState(() => (Math.random() * Math.PI * 2))
     useFrame((state) => {
         const time = state.clock.getElapsedTime()
@@ -120,10 +120,13 @@ function BlockAxe({ position = [0, 0, 0] }) {
     </group>
 }
 
-function BlockEnd({ position = [0, 0, 0] }) {
+export function BlockEnd({ position = [0, 0, 0] }) {
 
     const gamburger = useGLTF('./burger.glb')
 
+    gamburger.scene.children.forEach((mesh) => {
+        mesh.castShadow = true
+    })
 
     return <group position={position}>
         <mesh
@@ -139,16 +142,60 @@ function BlockEnd({ position = [0, 0, 0] }) {
     </group>
 }
 
-export default function Level () 
+function Bounds({length = 1}){
+    return <>
+    <RigidBody type='fixed' restitution={0.2} friction={0}>
+    <mesh 
+        position={[2.15, 0.60, -(length * 2) + 2]}
+        geometry={boxGeometry} 
+        scale={[0.3, 1.5, 4 * length]}
+        material={waltMaterial}
+        castShadow
+    />
+    <mesh 
+        position={[-2.15, 0.60, -(length * 2) + 2]}
+        geometry={boxGeometry} 
+        scale={[0.3, 1.5, 4 * length]}
+        material={waltMaterial}
+        castShadow
+        receiveShadow
+    />
+    <mesh 
+        position={[0, 0.60, -(length * 4) + 2]}
+        geometry={boxGeometry} 
+        scale={[4, 1.5, 0.3]}
+        material={waltMaterial}
+        castShadow
+        receiveShadow
+    />
+        </RigidBody>
+
+    </>
+}
+
+export function Level({ count = 5 , types = [ BlockSpinner, BlockLimbo, BlockAxe]}) 
 {
+
+    const bloks = useMemo(() => {
+        const blocks = []
+
+        for (let i = 0; i < count; i++)
+        {
+            const type = types[Math.floor(Math.random() * types.length)]
+            blocks.push(type)
+        }
+
+        return blocks
+    }, [count, types])
+ 
 return <>
 
 
-    <BlockStart position={[0, 0, 16]}/>
-    <BlockSpinner position={[0, 0, 12]}/>
-    <BlockLimbo position={[0, 0, 8]}/>
-    <BlockAxe position={[0, 0, 4]}/>
-    <BlockEnd position={[0, 0, 0]}/>
-
+    <BlockStart position={[0, 0, 0]}/>
+    
+    {bloks.map((Block, index) => <Block key={index} position={[0, 0, -(index+ 1) * 4]} />)}
+  
+    <BlockEnd position={[0, 0, -(count+1) * 4]}/> 
+    <Bounds length={count + 2}/>
 </>
 }

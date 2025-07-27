@@ -1,7 +1,7 @@
 import {OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { Physics, Debug } from "@react-three/rapier";
-import Level from "./Level";
+import {Level} from "./Level";
 
 
 export default function Experience() {
