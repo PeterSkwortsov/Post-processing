@@ -1,9 +1,11 @@
 import * as THREE from 'three'
-import { RigidBody } from '@react-three/rapier'
+import { RigidBody, CuboidCollider, useRapier } from '@react-three/rapier'
 import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
+import { useKeyboardControls } from '@react-three/drei'
+
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
 const floor1Material = new THREE.MeshStandardMaterial({ color: 'limegreen', roughness: 0.5, metalness: 0.5 })
@@ -11,6 +13,8 @@ const floor2Material = new THREE.MeshStandardMaterial({ color: 'greenyellow', ro
 const obstacle = new THREE.MeshStandardMaterial({ color: 'orangered', roughness: 0.5 })
 const waltMaterial = new THREE.MeshStandardMaterial({ color: 'slategray' })
 
+
+ 
 
 export function BlockSpinner({ position = [0, 0, 0] })
 {
@@ -142,6 +146,119 @@ export function BlockEnd({ position = [0, 0, 0] }) {
     </group>
 }
 
+
+
+
+export function Player() {
+
+const body = useRef()
+const [subscribeKeys, getKeys] = useKeyboardControls()
+const {rapier, world} = useRapier()
+const rapierWorld = world.raw()
+
+
+    const [smoothhedCameraPosition] = useState(() => new THREE.Vector3(20, -190, 20))
+    const [smoothhedCameraTarget] = useState(() => new THREE.Vector3())
+
+    const jump = () => {
+
+        const origin = body.current.translation()
+        origin.y -= 0.31
+        const direction = {x: 0, y: -1, z: 0}
+        const ray = new rapier.Ray(origin, direction)
+        const hit = rapierWorld.castRay(ray, 10, true)
+
+        if (hit.toi < 0.15) {
+            body.current.applyImpulse({ x: 0, y: 0.5, z: 0 })
+        }
+    }
+
+    useEffect(() => {
+        const unsubscripe = subscribeKeys(
+            (state) => state.jump,
+            (value) => {
+                
+                if (value) {
+                    jump()
+
+                }
+            }
+        )
+        return () => {
+            unsubscripe()
+        }
+
+    })
+
+
+    useFrame((state, delta) => {
+        const { forward, backward, leftward, rightward } = getKeys()
+
+        const impulse = { x: 0, y: 0, z: 0 }
+        const torque = { x: 0, y: 0, z: 0 }
+
+        const impulseStrength = 0.6 * delta
+        const torqueStrength = 0.2 * delta
+
+        if (forward) {
+            impulse.z -= impulseStrength
+            torque.x -= torqueStrength
+        }
+
+        if (rightward) {
+            impulse.x += impulseStrength
+            torque.z -= torqueStrength
+        }
+
+        if (backward) {
+            impulse.z += impulseStrength
+            torque.x += torqueStrength
+        }
+
+        if (leftward) {
+            impulse.x -= impulseStrength
+            torque.z += torqueStrength
+        }
+
+        body.current.applyImpulse(impulse)
+        body.current.applyTorqueImpulse(torque)
+
+
+        // камера
+
+        const bodyposition = body.current.translation()
+        const cameraPosition = new THREE.Vector3()
+        cameraPosition.copy(bodyposition)
+        cameraPosition.y += 0.9
+        cameraPosition.z += 3
+
+        const cameraTarget = new THREE.Vector3()
+        cameraTarget.copy(bodyposition)
+        cameraTarget.y += 0.25
+
+        smoothhedCameraPosition.lerp(cameraPosition, 5 * delta)
+        smoothhedCameraTarget.lerp(cameraTarget, 5 * delta)
+
+        state.camera.position.copy(smoothhedCameraPosition)
+        state.camera.lookAt(smoothhedCameraTarget)
+    })
+
+    return <RigidBody 
+    ref={body} 
+    colliders='ball' 
+    position={[0, 1, 0.5]}
+    restitution={0.2}
+    friction={0}
+    linearDamping={0.9}
+    angularDamping={0.9}
+    >
+        <mesh castShadow>
+            <icosahedronGeometry args={[0.3, 4]} />
+            <meshStandardMaterial flatShading color='mediumpurple' />
+        </mesh>
+    </RigidBody>
+}
+
 function Bounds({length = 1}){
     return <>
     <RigidBody type='fixed' restitution={0.2} friction={0}>
@@ -168,6 +285,13 @@ function Bounds({length = 1}){
         castShadow
         receiveShadow
     />
+
+            <RigidBody type='kinematicPosition' position={[0, 0.1, length - 5.1]} restitution={0.2} friction={0}>
+                <mesh geometry={boxGeometry} material={waltMaterial} scale={[4, 0.3, 0.3]} />
+            </RigidBody>
+   
+
+    <CuboidCollider args={[2, 0.1, 2 * length]} position={[0, -0.15, -(length * 2) + 2]} restitution={0.2} friction={1} />
         </RigidBody>
 
     </>
@@ -188,6 +312,9 @@ export function Level({ count = 5 , types = [ BlockSpinner, BlockLimbo, BlockAxe
         return blocks
     }, [count, types])
  
+
+  
+
 return <>
 
 
@@ -197,5 +324,6 @@ return <>
   
     <BlockEnd position={[0, 0, -(count+1) * 4]}/> 
     <Bounds length={count + 2}/>
+    <Player />
 </>
 }
